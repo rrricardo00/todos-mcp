@@ -143,9 +143,6 @@ export default function TodoList() {
 
         <div className="card p-8 mb-8 animate-slide-up">
           <h2 className="text-2xl font-semibold text-slate-800 mb-6 flex items-center">
-            <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
             Add New Todo
           </h2>
           <form onSubmit={handleSubmit} className="space-y-6">
