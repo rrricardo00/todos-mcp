@@ -16,10 +16,6 @@ export default function TodoList() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null)
 
-  useEffect(() => {
-    fetchTodos()
-  }, [])
-
   const fetchTodos = async () => {
     try {
       setLoading(true)
@@ -36,6 +32,21 @@ export default function TodoList() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchTodos()
+    
+    const handleTodosUpdate = () => {
+      console.log('[TodoList] todos-updated event received, refreshing todos')
+      fetchTodos()
+    }
+    
+    window.addEventListener('todos-updated', handleTodosUpdate)
+    
+    return () => {
+      window.removeEventListener('todos-updated', handleTodosUpdate)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -114,6 +125,23 @@ export default function TodoList() {
   const handleCancelEdit = () => {
     setEditingId(null)
     setEditFormData({})
+  }
+
+  const handleToggleCheck = async (todo: Todo) => {
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .update({ checked: true })
+        .eq('id', todo.id)
+        .select()
+
+      if (error) throw error
+      if (data) {
+        setTodos(prev => prev.map(t => t.id === todo.id ? data[0] : t))
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update todo')
+    }
   }
 
   if (loading) return (
@@ -225,7 +253,7 @@ export default function TodoList() {
               {todos.map((todo, index) => (
                 <div 
                   key={todo.id} 
-                  className="card p-6 animate-slide-up"
+                  className={`card p-6 animate-slide-up ${todo.checked ? 'opacity-75' : ''}`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {editingId === todo.id ? (
@@ -275,7 +303,9 @@ export default function TodoList() {
                     <div>
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-slate-800 mb-2">{todo.item}</h3>
+                          <h3 className={`text-xl font-semibold mb-2 ${todo.checked ? 'line-through text-slate-500' : 'text-slate-800'}`}>
+                            {todo.item}
+                          </h3>
                           <div className="flex flex-col gap-4 mb-3">
                             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium max-w-max">
                               Quantity: {todo.quantity}
@@ -292,6 +322,17 @@ export default function TodoList() {
                           </p>
                         </div>
                         <div className="flex gap-2 ml-4">
+                          {!todo.checked && (
+                            <button
+                              onClick={() => handleToggleCheck(todo)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Done
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEdit(todo)}
                             className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center"

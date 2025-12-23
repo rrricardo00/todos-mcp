@@ -4,6 +4,7 @@ export interface Todo {
   quantity: number
   description: string
   created_at: string
+  checked: boolean
 }
 
 export interface CreateTodoRequest {
@@ -16,4 +17,12 @@ export interface UpdateTodoRequest {
   item?: string
   quantity?: number
   description?: string
+  checked?: boolean
+}
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: Date
 }
