@@ -8,9 +8,11 @@ export function useTodos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchTodos = useCallback(async () => {
+  const fetchTodos = useCallback(async (silent = false) => {
     try {
-      setLoading(true)
+      if (!silent) {
+        setLoading(true)
+      }
       setError(null)
       const response = await fetch(`${API_URL}/todos`)
       
@@ -25,8 +27,22 @@ export function useTodos() {
       setError(errorMessage)
       console.error('Error fetching todos:', err)
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
+  }, [])
+
+  const addTodo = useCallback((todo: Todo) => {
+    setTodos(prev => [...prev, todo])
+  }, [])
+
+  const updateTodo = useCallback((updatedTodo: Todo) => {
+    setTodos(prev => prev.map(todo => todo.id === updatedTodo.id ? updatedTodo : todo))
+  }, [])
+
+  const removeTodo = useCallback((id: string) => {
+    setTodos(prev => prev.filter(todo => todo.id !== id))
   }, [])
 
   useEffect(() => {
@@ -38,5 +54,8 @@ export function useTodos() {
     loading,
     error,
     fetchTodos,
+    addTodo,
+    updateTodo,
+    removeTodo,
   }
 }

@@ -30,10 +30,31 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
     shouldCreate = true
     console.log('[Create] Keywords detected, extracting item...')
     
+    // First, extract quantity and description to remove them from the message
+    const qtyMatch = userMessage.match(/(?:com\s+)?quantidade:?\s*(\d+(?:\.\d+)?)|quantity:?\s*(\d+(?:\.\d+)?)/i)
+    if (qtyMatch) {
+      quantity = parseFloat(qtyMatch[1] || qtyMatch[2])
+      console.log('[Create] Quantity extracted:', quantity)
+    }
+
+    const descMatch = userMessage.match(/descrição:?\s*(.+?)(?:\s+quantidade|\s+quantity|$)|description:?\s*(.+?)(?:\s+quantity|$)/i)
+    if (descMatch) {
+      description = (descMatch[1] || descMatch[2] || '').trim()
+      console.log('[Create] Description extracted:', description)
+    }
+
+    // Remove quantity and description from message to get clean item text
+    let cleanMessage = userMessage
+      .replace(/(?:com\s+)?quantidade:?\s*\d+(?:\.\d+)?/gi, '')
+      .replace(/quantity:?\s*\d+(?:\.\d+)?/gi, '')
+      .replace(/descrição:?.+?(?:\s+quantidade|\s+quantity|$)/gi, '')
+      .replace(/description:?.+?(?:\s+quantity|$)/gi, '')
+      .trim()
+
     // Pattern 1: "criar todo para comprar leite" or "criar um todo para comprar leite"
-    let pattern1 = userMessage.match(/(?:criar|adicionar|fazer|create|add|make).*todo.*(?:para|for|:)?\s+(.+?)(?:\s+com|\s+quantity|\s+quantidade|$)/i)
+    let pattern1 = cleanMessage.match(/(?:criar|adicionar|fazer|create|add|make).*todo.*(?:para|for|:)\s+(.+)/i)
     if (!pattern1) {
-      pattern1 = userMessage.match(/(?:criar|adicionar|fazer|create|add|make).*um?\s*todo.*(?:para|for|:)?\s+(.+?)(?:\s+com|\s+quantity|\s+quantidade|$)/i)
+      pattern1 = cleanMessage.match(/(?:criar|adicionar|fazer|create|add|make).*um?\s*todo.*(?:para|for|:)\s+(.+)/i)
     }
     if (pattern1 && pattern1[1]) {
       item = pattern1[1].trim()
@@ -42,7 +63,7 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
     
     // Pattern 2: "todo para comprar leite" or "todo: comprar leite"
     if (!item || item.length < 2) {
-      const pattern2 = userMessage.match(/todo.*(?:para|for|:)?\s+(.+?)(?:\s+com|\s+quantity|\s+quantidade|$)/i)
+      const pattern2 = cleanMessage.match(/todo.*(?:para|for|:)\s+(.+)/i)
       if (pattern2 && pattern2[1]) {
         item = pattern2[1].trim()
         console.log('[Create] Pattern 2 matched:', item)
@@ -51,40 +72,36 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
     
     // Pattern 3: "criar um todo de comprar leite"
     if (!item || item.length < 2) {
-      const pattern3 = userMessage.match(/(?:criar|adicionar|fazer).*todo.*(?:de|of)?\s+(.+)/i)
+      const pattern3 = cleanMessage.match(/(?:criar|adicionar|fazer|create|add|make).*todo.*(?:de|of)\s+(.+)/i)
       if (pattern3 && pattern3[1]) {
         item = pattern3[1].trim()
         console.log('[Create] Pattern 3 matched:', item)
       }
     }
 
-    // Clean up item name - remove common words
+    // Pattern 4: "criar todo comprar leite" (sem preposição)
+    if (!item || item.length < 2) {
+      const pattern4 = cleanMessage.match(/(?:criar|adicionar|fazer|create|add|make).*todo\s+(.+)/i)
+      if (pattern4 && pattern4[1]) {
+        item = pattern4[1].trim()
+        console.log('[Create] Pattern 4 matched:', item)
+      }
+    }
+
+    // Pattern 5: "todo comprar leite" (sem preposição)
+    if (!item || item.length < 2) {
+      const pattern5 = cleanMessage.match(/todo\s+(.+)/i)
+      if (pattern5 && pattern5[1]) {
+        item = pattern5[1].trim()
+        console.log('[Create] Pattern 5 matched:', item)
+      }
+    }
+
+    // Clean up item name - remove leading prepositions only if they are standalone
     if (item) {
       item = item
-        .replace(/^(para|for|de|of|a|an|o|a)\s+/i, '') // Remove leading prepositions
+        .replace(/^(para|for|de|of|a|an|o|a)\s+/i, '')
         .trim()
-    }
-
-    // Extract quantity from the full message
-    const qtyMatch = userMessage.match(/(?:com\s+)?quantidade:?\s*(\d+(?:\.\d+)?)|quantity:?\s*(\d+(?:\.\d+)?)/i)
-    if (qtyMatch) {
-      quantity = parseFloat(qtyMatch[1] || qtyMatch[2])
-      console.log('[Create] Quantity extracted:', quantity)
-      // Remove quantity from item name
-      if (item) {
-        item = item.replace(/(?:com\s+)?quantidade:?\s*\d+(?:\.\d+)?/i, '').replace(/quantity:?\s*\d+(?:\.\d+)?/i, '').trim()
-      }
-    }
-
-    // Extract description
-    const descMatch = userMessage.match(/descrição:?\s*(.+?)(?:\s+quantidade|\s+quantity|$)|description:?\s*(.+?)(?:\s+quantity|$)/i)
-    if (descMatch) {
-      description = (descMatch[1] || descMatch[2] || '').trim()
-      console.log('[Create] Description extracted:', description)
-      // Remove description from item name
-      if (item) {
-        item = item.replace(/descrição:?.+/i, '').replace(/description:?.+/i, '').trim()
-      }
     }
 
     if (shouldCreate && item && item.length >= 2) {

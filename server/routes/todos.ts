@@ -4,7 +4,7 @@ import { supabase } from '../index.js'
 export const todosRouter = Router()
 
 // Get all todos
-todosRouter.get('/', async (req, res) => {
+todosRouter.get('/', async (_req, res) => {
   try {
     const { data, error } = await supabase
       .from('todos')
@@ -38,7 +38,7 @@ todosRouter.get('/:id', async (req, res) => {
 // Create todo
 todosRouter.post('/', async (req, res) => {
   try {
-    const { item, quantity = 1, description = '' } = req.body
+    const { item, quantity = 1, description = '', checked = false } = req.body
 
     if (!item) {
       return res.status(400).json({ error: 'Item is required' })
@@ -46,7 +46,7 @@ todosRouter.post('/', async (req, res) => {
 
     const { data, error } = await supabase
       .from('todos')
-      .insert([{ item, quantity, description }])
+      .insert([{ item, quantity, description, checked }])
       .select()
 
     if (error) throw error
@@ -60,12 +60,13 @@ todosRouter.post('/', async (req, res) => {
 todosRouter.put('/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const { item, quantity, description } = req.body
+    const { item, quantity, description, checked } = req.body
 
     const updates: any = {}
     if (item !== undefined) updates.item = item
     if (quantity !== undefined) updates.quantity = quantity
     if (description !== undefined) updates.description = description
+    if (checked !== undefined) updates.checked = checked
 
     const { data, error } = await supabase
       .from('todos')
@@ -97,7 +98,7 @@ todosRouter.delete('/:id', async (req, res) => {
 })
 
 // Get todos count
-todosRouter.get('/count', async (req, res) => {
+todosRouter.get('/count', async (_req, res) => {
   try {
     const { count, error } = await supabase
       .from('todos')
