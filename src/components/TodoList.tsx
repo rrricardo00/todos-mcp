@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState } from 'react'
+import { useTodos } from '../hooks/useTodos'
 import type { Todo, CreateTodoRequest, UpdateTodoRequest } from '../types/todo'
 
+const API_URL = 'http://localhost:3001/api'
+
 export default function TodoList() {
-  const [todos, setTodos] = useState<Todo[]>([])
-  const [loading, setLoading] = useState(true)
+  const { todos, loading, error: todosError, fetchTodos } = useTodos()
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<CreateTodoRequest>({
     item: '',
@@ -16,42 +17,25 @@ export default function TodoList() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null)
 
-  useEffect(() => {
-    fetchTodos()
-  }, [])
-
-  const fetchTodos = async () => {
-    try {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('todos')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
-      setTodos(data || [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch todos')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.item.trim()) return
 
     try {
-      const { data, error } = await supabase
-        .from('todos')
-        .insert([formData])
-        .select()
+      const response = await fetch(`${API_URL}/todos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
 
-      if (error) throw error
-      if (data) {
-        setTodos(prev => [data[0], ...prev])
-        setFormData({ item: '', quantity: 1, description: '' })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+
+      await fetchTodos()
+      setFormData({ item: '', quantity: 1, description: '' })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add todo')
     }
@@ -59,13 +43,15 @@ export default function TodoList() {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('todos')
-        .delete()
-        .eq('id', id)
+      const response = await fetch(`${API_URL}/todos/${id}`, {
+        method: 'DELETE',
+      })
 
-      if (error) throw error
-      setTodos(prev => prev.filter(todo => todo.id !== id))
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      await fetchTodos()
       setDeleteModalOpen(false)
       setTodoToDelete(null)
     } catch (err) {
@@ -94,18 +80,21 @@ export default function TodoList() {
 
   const handleUpdate = async (id: string) => {
     try {
-      const { data, error } = await supabase
-        .from('todos')
-        .update(editFormData)
-        .eq('id', id)
-        .select()
+      const response = await fetch(`${API_URL}/todos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editFormData),
+      })
 
-      if (error) throw error
-      if (data) {
-        setTodos(prev => prev.map(todo => todo.id === id ? data[0] : todo))
-        setEditingId(null)
-        setEditFormData({})
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+
+      await fetchTodos()
+      setEditingId(null)
+      setEditFormData({})
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update todo')
     }
@@ -123,20 +112,14 @@ export default function TodoList() {
   )
 
   return (
-    <div className="min-h-screen py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">Todo List</h1>
-          <p className="text-slate-600">Manage your tasks with style</p>
-        </div>
-        
-        {error && (
+    <div className="max-w-4xl mx-auto">
+        {(error || todosError) && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-6 animate-slide-up">
             <div className="flex items-center">
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              {error}
+              {error || todosError}
             </div>
           </div>
         )}
@@ -369,7 +352,6 @@ export default function TodoList() {
             </div>
           </div>
         )}
-      </div>
     </div>
   )
 }
