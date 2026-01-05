@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { todosApi } from '../lib/api'
 import type { Todo, CreateTodoRequest, UpdateTodoRequest } from '../types/todo'
 
 export default function TodoList() {
@@ -19,12 +19,7 @@ export default function TodoList() {
   const fetchTodos = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('todos')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
+      const data = await todosApi.getAll()
       setTodos(data || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch todos')
@@ -53,16 +48,9 @@ export default function TodoList() {
     if (!formData.item.trim()) return
 
     try {
-      const { data, error } = await supabase
-        .from('todos')
-        .insert([formData])
-        .select()
-
-      if (error) throw error
-      if (data) {
-        setTodos(prev => [data[0], ...prev])
-        setFormData({ item: '', quantity: 1, description: '' })
-      }
+      const data = await todosApi.create(formData)
+      setTodos(prev => [data, ...prev])
+      setFormData({ item: '', quantity: 1, description: '' })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add todo')
     }
@@ -70,12 +58,7 @@ export default function TodoList() {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('todos')
-        .delete()
-        .eq('id', id)
-
-      if (error) throw error
+      await todosApi.delete(id)
       setTodos(prev => prev.filter(todo => todo.id !== id))
       setDeleteModalOpen(false)
       setTodoToDelete(null)
@@ -105,18 +88,10 @@ export default function TodoList() {
 
   const handleUpdate = async (id: string) => {
     try {
-      const { data, error } = await supabase
-        .from('todos')
-        .update(editFormData)
-        .eq('id', id)
-        .select()
-
-      if (error) throw error
-      if (data) {
-        setTodos(prev => prev.map(todo => todo.id === id ? data[0] : todo))
-        setEditingId(null)
-        setEditFormData({})
-      }
+      const data = await todosApi.update(id, editFormData)
+      setTodos(prev => prev.map(todo => todo.id === id ? data : todo))
+      setEditingId(null)
+      setEditFormData({})
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update todo')
     }
@@ -129,16 +104,8 @@ export default function TodoList() {
 
   const handleToggleCheck = async (todo: Todo) => {
     try {
-      const { data, error } = await supabase
-        .from('todos')
-        .update({ checked: true })
-        .eq('id', todo.id)
-        .select()
-
-      if (error) throw error
-      if (data) {
-        setTodos(prev => prev.map(t => t.id === todo.id ? data[0] : t))
-      }
+      const data = await todosApi.update(todo.id, { checked: true })
+      setTodos(prev => prev.map(t => t.id === todo.id ? data : t))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update todo')
     }

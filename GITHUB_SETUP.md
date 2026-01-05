@@ -29,9 +29,8 @@ git push -u origin main
 2. Clique em **"New repository secret"** e adicione cada uma:
 
 ### Secrets do Frontend:
-- **Nome**: `VITE_SUPABASE_URL` | **Valor**: `https://seu-projeto.supabase.co`
-- **Nome**: `VITE_SUPABASE_ANON_KEY` | **Valor**: `sua-chave-anon-do-supabase`
 - **Nome**: `VITE_API_URL` | **Valor**: `https://seu-backend.railway.app/api` (após deploy do backend)
+  - ⚠️ **Nota**: O frontend não precisa mais das credenciais do Supabase, pois acessa através do backend
 
 ### Secrets do Backend:
 - **Nome**: `SUPABASE_URL` | **Valor**: `https://seu-projeto.supabase.co`

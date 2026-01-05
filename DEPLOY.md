@@ -25,9 +25,9 @@ Adicione os seguintes secrets:
 
 | Nome do Secret | Valor | Descrição |
 |---------------|-------|-----------|
-| `VITE_SUPABASE_URL` | `https://seu-projeto.supabase.co` | URL do seu projeto Supabase |
-| `VITE_SUPABASE_ANON_KEY` | `sua-chave-anon` | Chave anônima do Supabase |
 | `VITE_API_URL` | `https://seu-backend.com/api` | URL da API do backend (após deploy) |
+
+⚠️ **Nota**: O frontend não precisa mais das credenciais do Supabase (`VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`), pois agora acessa o Supabase exclusivamente através do backend.
 
 ### 3. Adicione as Secrets do Backend
 

@@ -39,6 +39,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' })
 })
 
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Todos MCP API Server',
+    endpoints: {
+      health: '/api/health',
+      todos: '/api/todos',
+      chat: '/api/chat'
+    }
+  })
+})
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
 })

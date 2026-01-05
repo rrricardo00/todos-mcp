@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../hooks/useChat'
-import { supabase } from '../lib/supabase'
+import { todosApi } from '../lib/api'
 import type { Todo } from '../types/todo'
 
 export default function Chat() {
@@ -10,11 +10,12 @@ export default function Chat() {
   const { messages, isLoading, error, sendMessage, clearMessages, actionExecuted } = useChat()
 
   const fetchTodos = async () => {
-    const { data } = await supabase
-      .from('todos')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (data) setTodos(data)
+    try {
+      const data = await todosApi.getAll()
+      if (data) setTodos(data)
+    } catch (err) {
+      console.error('Error fetching todos in Chat:', err)
+    }
   }
 
   useEffect(() => {

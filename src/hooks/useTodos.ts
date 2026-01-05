@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+import { todosApi } from '../lib/api'
 import type { Todo } from '../types/todo'
 
 export function useTodos() {
@@ -11,12 +11,7 @@ export function useTodos() {
     try {
       setLoading(true)
       setError(null)
-      const { data, error } = await supabase
-        .from('todos')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
+      const data = await todosApi.getAll()
       setTodos(data || [])
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch todos'

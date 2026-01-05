@@ -64,29 +64,37 @@ cp .env.example .env
 Edite o arquivo `.env` com suas credenciais:
 
 ```env
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-VITE_SUPABASE_ANON_KEY=sua-chave-anon
+# O frontend agora acessa o Supabase através do backend
 VITE_API_URL=http://localhost:3001/api
 ```
 
-### 4. Execute o Backend
+### 4. Execute Frontend e Backend
 
+**Opção 1: Executar ambos ao mesmo tempo (Recomendado)**
+
+```bash
+npm run dev:all
+```
+
+Isso iniciará o frontend e backend simultaneamente em um único comando.
+
+**Opção 2: Executar separadamente**
+
+Em um terminal, execute o backend:
 ```bash
 cd server
 npm run dev
 ```
 
-O backend estará rodando em `http://localhost:3001`
-
-### 5. Execute o Frontend
-
-Em outro terminal:
-
+Em outro terminal, execute o frontend:
 ```bash
 npm run dev
 ```
 
-O frontend estará rodando em `http://localhost:5173`
+### 5. Acesse a aplicação
+
+- **Frontend**: `http://localhost:5173`
+- **Backend**: `http://localhost:3001`
 
 ## 🗄️ Configuração do Banco de Dados (Supabase)
 
@@ -157,15 +165,20 @@ TodosMcp/
 
 ## 📝 Scripts Disponíveis
 
+### Scripts Principais
+- `npm run dev:all` - **Inicia frontend e backend simultaneamente** (recomendado)
+- `npm run dev:frontend` - Inicia apenas o frontend
+- `npm run dev:backend` - Inicia apenas o backend
+
 ### Frontend
 - `npm run dev` - Inicia servidor de desenvolvimento
 - `npm run build` - Build para produção
 - `npm run preview` - Preview do build de produção
 
 ### Backend
-- `npm run dev` - Inicia servidor com hot-reload
-- `npm run build` - Compila TypeScript
-- `npm start` - Inicia servidor de produção
+- `cd server && npm run dev` - Inicia servidor com hot-reload
+- `cd server && npm run build` - Compila TypeScript
+- `cd server && npm start` - Inicia servidor de produção
 
 ## 🐛 Troubleshooting
 
