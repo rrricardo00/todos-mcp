@@ -49,10 +49,10 @@ if (openaiApiKey) {
 }
 
 if (!openaiApiKey || openaiApiKey === '') {
-  console.error('❌ Erro: OPENAI_API_KEY é obrigatória!')
-  console.error('Configure a variável OPENAI_API_KEY no arquivo .env na pasta server/')
-  console.error('Caminho esperado:', join(__dirname, '../../.env'))
-  console.error('Variáveis carregadas do .env:', {
+  console.error('❌ Error: OPENAI_API_KEY is required!')
+  console.error('Configure the OPENAI_API_KEY environment variable in the .env file in the server/ folder')
+  console.error('Expected path:', join(__dirname, '../../.env'))
+  console.error('Environment variables loaded from .env:', {
     hasOpenAIKey: !!process.env.OPENAI_API_KEY,
     hasModel: !!process.env.OPENAI_MODEL,
     allEnvKeys: Object.keys(process.env).filter(k => k.includes('OPENAI'))
@@ -60,11 +60,11 @@ if (!openaiApiKey || openaiApiKey === '') {
 } else {
   const keyPreview = openaiApiKey.substring(0, 7) + '...' + openaiApiKey.substring(openaiApiKey.length - 4)
   const keyLength = openaiApiKey.length
-  console.log(`✅ OpenAI API Key carregada: ${keyPreview} (${keyLength} caracteres)`)
-  console.log(`✅ Modelo configurado: ${openaiModel}`)
+  console.log(`✅ OpenAI API Key loaded: ${keyPreview} (${keyLength} characters)`)
+  console.log(`✅ Model configured: ${openaiModel}`)
   
   if (!openaiApiKey.startsWith('sk-')) {
-    console.warn('⚠️  ATENÇÃO: A chave não começa com "sk-" - pode estar incorreta!')
+    console.warn('⚠️  WARNING: The key does not start with "sk-" - it may be incorrect!')
   }
 }
 
@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
     if (!checkRateLimit(rateLimitKey)) {
       return res.status(429).json({
         error: 'Rate limit exceeded',
-        message: 'Muitas requisições. Por favor, aguarde um momento antes de tentar novamente.'
+        message: 'Too many requests. Please wait a moment before trying again.'
       })
     }
 
@@ -97,31 +97,31 @@ router.post('/', async (req, res) => {
       const cached = requestCache.get(cacheKey) as { response: any; timestamp: number } | undefined
       
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        console.log('📦 Resposta do cache')
+        console.log('📦 Response from cache')
         return res.json(cached.response)
       }
     }
     
     const todosContext = todos && todos.length > 0 
-      ? `\n\nAqui estão os todos atuais do usuário:\n${todos.map((t: any, i: number) => 
-          `${i + 1}. ${t.item} (Quantidade: ${t.quantity}${t.description ? `, Descrição: ${t.description}` : ''})${t.checked ? ' [CONCLUÍDO]' : ''}`
+      ? `\n\nHere are the user's current todos:\n${todos.map((t: any, i: number) => 
+          `${i + 1}. ${t.item} (Quantity: ${t.quantity}${t.description ? `, Description: ${t.description}` : ''})${t.checked ? ' [COMPLETED]' : ''}`
         ).join('\n')}`
-      : '\n\nO usuário ainda não tem todos cadastrados.'
+      : '\n\nThe user does not have any todos registered yet.'
 
     let actionContext = ''
     if (action.type !== 'none') {
-      actionContext = `\n\n⚠️ IMPORTANTE: Uma ação foi executada no sistema:\n${action.message}\n\nVocê deve confirmar esta ação na sua resposta de forma clara e amigável.`
+      actionContext = `\n\n⚠️ IMPORTANT: An action was executed in the system:\n${action.message}\n\nYou must confirm this action in your response in a clear and friendly way.`
     }
 
-    const systemPrompt = `Você é um assistente inteligente para gerenciamento de tarefas (todos). 
-Você ajuda os usuários a criar, gerenciar e organizar suas tarefas.
+    const systemPrompt = `You are an intelligent assistant for task management (todos). 
+You help users create, manage and organize their tasks.
 
 ${todosContext}${actionContext}
 
-Quando o usuário pedir para criar um todo, você deve responder de forma clara e confirmar a criação.
-Quando o usuário pedir para listar todos, mostre a lista de forma organizada.
-Quando uma ação for executada (criar, atualizar ou deletar), confirme a ação de forma clara e amigável.
-Seja sempre amigável, útil e objetivo nas respostas.`
+When the user asks to create a todo, you should respond clearly and confirm the creation.
+When the user asks to list todos, show the list in an organized way.
+When an action is executed (create, update or delete), confirm the action clearly and friendly.
+Always be friendly, helpful and objective in your responses.`
 
     const completionParams: any = {
       model: openaiModel,
@@ -143,7 +143,7 @@ Seja sempre amigável, útil e objetivo nas respostas.`
       completionParams.temperature = 0.7
     }
 
-    console.log('📤 Enviando requisição para OpenAI:', {
+    console.log('📤 Sending request to OpenAI:', {
       model: openaiModel,
       messageLength: message.length,
       todosCount: todos?.length || 0
@@ -151,7 +151,7 @@ Seja sempre amigável, útil e objetivo nas respostas.`
 
     const completion = await openai.chat.completions.create(completionParams)
 
-    console.log('📥 Resposta recebida:', {
+    console.log('📥 Response received:', {
       hasChoices: !!completion.choices,
       choicesLength: completion.choices?.length || 0,
       firstChoice: completion.choices?.[0] ? {
@@ -169,7 +169,7 @@ Seja sempre amigável, útil e objetivo nas respostas.`
       const usage = completion.usage
       const reasoningTokens = usage?.completion_tokens_details?.reasoning_tokens || 0
       
-      console.warn('⚠️ Resposta vazia da API:', {
+      console.warn('⚠️ Empty response from API:', {
         finishReason,
         usage,
         model: completion.model,
@@ -180,14 +180,14 @@ Seja sempre amigável, útil e objetivo nas respostas.`
 
       if (action.type !== 'none' && action.message) {
         response = action.message
-        console.log('✅ Usando mensagem da ação como resposta:', response)
-        console.log('✅ Action que será retornada:', { type: action.type, data: action.data })
+        console.log('✅ Using action message as response:', response)
+        console.log('✅ Action that will be returned:', { type: action.type, data: action.data })
       } else if (finishReason === 'length' && reasoningTokens > 0) {
-        throw new Error(`O modelo atingiu o limite de tokens de raciocínio (${reasoningTokens} tokens). Tente aumentar max_completion_tokens ou usar um modelo diferente.`)
+        throw new Error(`The model reached the reasoning token limit (${reasoningTokens} tokens). Try increasing max_completion_tokens or using a different model.`)
       } else if (finishReason === 'length') {
-        throw new Error('O modelo atingiu o limite de tokens. A resposta foi cortada. Tente aumentar max_completion_tokens.')
+        throw new Error('The model reached the token limit. The response was truncated. Try increasing max_completion_tokens.')
       } else {
-        throw new Error(`A API retornou uma resposta vazia. Finish reason: ${finishReason || 'unknown'}`)
+        throw new Error(`The API returned an empty response. Finish reason: ${finishReason || 'unknown'}`)
       }
     }
 
@@ -219,7 +219,7 @@ Seja sempre amigável, útil e objetivo nas respostas.`
         }
       }
     } else {
-      console.log(`✅ Ação executada: ${action.type}`, action.data)
+      console.log(`✅ Action executed: ${action.type}`, action.data)
     }
 
     res.json(responseData)
@@ -231,7 +231,7 @@ Seja sempre amigável, útil e objetivo nas respostas.`
       code: error?.code
     })
     
-    let errorMessage = 'Desculpe, ocorreu um erro ao processar sua mensagem.'
+    let errorMessage = 'Sorry, an error occurred while processing your message.'
     let statusCode = error?.status || 500
     
     if (error?.status === 429) {
@@ -239,21 +239,21 @@ Seja sempre amigável, útil e objetivo nas respostas.`
       const isQuotaExceeded = error?.message?.includes('quota') || error?.message?.includes('exceeded') || errorResponse?.error?.message?.includes('quota')
       
       if (isQuotaExceeded) {
-        errorMessage = `❌ Créditos da API do OpenAI esgotados!\n\nSua conta está com 0 créditos disponíveis.\n\nPara continuar usando:\n1. Acesse: https://platform.openai.com/account/billing\n2. Adicione créditos à sua conta\n3. Verifique seu uso em: https://platform.openai.com/usage\n\n💡 Dica: Você pode adicionar créditos via cartão de crédito na plataforma OpenAI.`
+        errorMessage = `❌ OpenAI API credits exhausted!\n\nYour account has 0 credits available.\n\nTo continue using:\n1. Visit: https://platform.openai.com/account/billing\n2. Add credits to your account\n3. Check your usage at: https://platform.openai.com/usage\n\n💡 Tip: You can add credits via credit card on the OpenAI platform.`
       } else {
         const retryAfter = error?.headers?.['retry-after'] || error?.response?.headers?.['retry-after']
-        errorMessage = `⏱️ Limite de requisições excedido. ${retryAfter ? `Tente novamente em ${retryAfter} segundos.` : 'Aguarde um momento antes de tentar novamente.'}\n\nPor favor, verifique:\n1. Seu plano e créditos em: https://platform.openai.com/account/billing\n2. Seu uso em: https://platform.openai.com/usage`
+        errorMessage = `⏱️ Request limit exceeded. ${retryAfter ? `Try again in ${retryAfter} seconds.` : 'Please wait a moment before trying again.'}\n\nPlease check:\n1. Your plan and credits at: https://platform.openai.com/account/billing\n2. Your usage at: https://platform.openai.com/usage`
       }
     } else if (error?.status === 401) {
-      errorMessage = 'Chave da API do OpenAI inválida ou expirada. Verifique:\n\n1. Se a chave está correta no arquivo .env (sem espaços extras)\n2. Se a chave não expirou em: https://platform.openai.com/api-keys\n3. Se a chave tem permissões para usar a API\n\nDica: Certifique-se de que não há espaços ou quebras de linha na chave no arquivo .env'
+      errorMessage = 'OpenAI API key is invalid or expired. Please check:\n\n1. If the key is correct in the .env file (no extra spaces)\n2. If the key has not expired at: https://platform.openai.com/api-keys\n3. If the key has permissions to use the API\n\nTip: Make sure there are no spaces or line breaks in the key in the .env file'
     } else if (error?.status === 404) {
-      errorMessage = 'Modelo não encontrado ou sem acesso. Verifique se você tem acesso ao modelo configurado.'
+      errorMessage = 'Model not found or no access. Please check if you have access to the configured model.'
     } else if (error?.message) {
       if (error.message.includes('quota') || error.message.includes('exceeded') || error.message.includes('billing')) {
-        errorMessage = `❌ Créditos da API do OpenAI esgotados!\n\n${error.message}\n\nPara continuar usando:\n1. Acesse: https://platform.openai.com/account/billing\n2. Adicione créditos à sua conta\n3. Verifique seu uso em: https://platform.openai.com/usage`
+        errorMessage = `❌ OpenAI API credits exhausted!\n\n${error.message}\n\nTo continue using:\n1. Visit: https://platform.openai.com/account/billing\n2. Add credits to your account\n3. Check your usage at: https://platform.openai.com/usage`
         statusCode = 429
       } else {
-        errorMessage = `Erro: ${error.message}`
+        errorMessage = `Error: ${error.message}`
       }
     }
     

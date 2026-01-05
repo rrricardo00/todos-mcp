@@ -104,19 +104,19 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
         return {
           type: 'create',
           data: data?.[0],
-          message: `✅ Todo criado: "${data?.[0]?.item}" (Quantidade: ${data?.[0]?.quantity}${data?.[0]?.description ? `, Descrição: ${data?.[0]?.description}` : ''})`
+          message: `✅ Todo created: "${data?.[0]?.item}" (Quantity: ${data?.[0]?.quantity}${data?.[0]?.description ? `, Description: ${data?.[0]?.description}` : ''})`
         }
       } catch (error) {
         console.error('[Create] Error creating todo:', error)
         return {
           type: 'none',
-          message: `Erro ao criar todo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          message: `Error creating todo: ${error instanceof Error ? error.message : 'Unknown error'}`
         }
       }
     } else if (shouldCreate) {
       return {
         type: 'none',
-        message: 'Preciso do nome do item para criar um todo. Por exemplo: "Crie um todo para comprar leite" ou "Adicione um todo: Comprar leite"'
+        message: 'I need the item name to create a todo. For example: "Create a todo to buy milk" or "Add a todo: Buy milk"'
       }
     }
   }
@@ -163,7 +163,7 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
       console.log('[Update] Todo not found. Available todos:', todos.map(t => t.item))
       return {
         type: 'none',
-        message: `Não encontrei o todo para atualizar. Você tem ${todos.length} todos: ${todos.slice(0, 3).map(t => t.item).join(', ')}${todos.length > 3 ? '...' : ''}`
+        message: `I couldn't find the todo to update. You have ${todos.length} todos: ${todos.slice(0, 3).map(t => t.item).join(', ')}${todos.length > 3 ? '...' : ''}`
       }
     }
 
@@ -200,7 +200,7 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
     if (Object.keys(updates).length === 0) {
       return {
         type: 'none',
-        message: 'Preciso saber o que atualizar. Exemplo: "Atualize o todo de comprar leite para quantidade 5" ou "Altere o todo comprar leite com descrição: leite integral"'
+        message: 'I need to know what to update. Example: "Update the todo to buy milk to quantity 5" or "Change the todo buy milk with description: whole milk"'
       }
     }
 
@@ -221,13 +221,13 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
       return {
         type: 'update',
         data: data?.[0],
-        message: `✅ Todo atualizado: "${data?.[0]?.item}" (Quantidade: ${data?.[0]?.quantity}${data?.[0]?.description ? `, Descrição: ${data?.[0]?.description}` : ''})`
+        message: `✅ Todo updated: "${data?.[0]?.item}" (Quantity: ${data?.[0]?.quantity}${data?.[0]?.description ? `, Description: ${data?.[0]?.description}` : ''})`
       }
     } catch (error) {
       console.error('[Update] Error updating todo:', error)
       return {
         type: 'none',
-        message: `Erro ao atualizar todo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+        message: `Error updating todo: ${error instanceof Error ? error.message : 'Unknown error'}`
       }
     }
   }
@@ -275,7 +275,7 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
       console.log('[Delete] Todo not found. Available todos:', todos.map(t => t.item))
       return {
         type: 'none',
-        message: `Não encontrei o todo para deletar. Você tem ${todos.length} todos: ${todos.slice(0, 3).map(t => t.item).join(', ')}${todos.length > 3 ? '...' : ''}`
+        message: `I couldn't find the todo to delete. You have ${todos.length} todos: ${todos.slice(0, 3).map(t => t.item).join(', ')}${todos.length > 3 ? '...' : ''}`
       }
     }
 
@@ -295,13 +295,13 @@ export async function processTodoAction(userMessage: string, todos: any[]): Prom
       return {
         type: 'delete',
         data: { id: todoId },
-        message: `✅ Todo deletado: "${todo.item}"`
+        message: `✅ Todo deleted: "${todo.item}"`
       }
     } catch (error) {
       console.error('[Delete] Error deleting todo:', error)
       return {
         type: 'none',
-        message: `Erro ao deletar todo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+        message: `Error deleting todo: ${error instanceof Error ? error.message : 'Unknown error'}`
       }
     }
   }

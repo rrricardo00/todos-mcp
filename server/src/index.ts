@@ -19,11 +19,11 @@ const supabaseUrl = process.env.SUPABASE_URL || ''
 const supabaseKey = process.env.SUPABASE_ANON_KEY || ''
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Erro: SUPABASE_URL e SUPABASE_ANON_KEY são obrigatórios!')
-  console.error('Configure as variáveis de ambiente no arquivo .env na pasta server/')
-  console.error('Exemplo:')
-  console.error('SUPABASE_URL=https://seu-projeto.supabase.co')
-  console.error('SUPABASE_ANON_KEY=sua_chave_aqui')
+  console.error('❌ Error: SUPABASE_URL and SUPABASE_ANON_KEY are required!')
+  console.error('Configure environment variables in the .env file in the server/ folder')
+  console.error('Example:')
+  console.error('SUPABASE_URL=https://your-project.supabase.co')
+  console.error('SUPABASE_ANON_KEY=your_key_here')
   process.exit(1)
 }
 
